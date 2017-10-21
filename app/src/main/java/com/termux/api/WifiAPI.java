@@ -23,22 +23,30 @@ public class WifiAPI {
                 WifiManager manager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
                 WifiInfo info = manager.getConnectionInfo();
                 out.beginObject();
-                if (info == null) {
-                    out.name("API_ERROR").value("No current connection");
+                ConnectivityManager connManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo mWifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+
+                if (mWifi.isConnected()) {
+                    if (info == null) {
+                        out.name("API_ERROR").value("No current connection");
+                    } else {
+                        out.name("bssid").value(info.getBSSID());
+                        out.name("frequency_mhz").value(info.getFrequency());
+                        //noinspection deprecation - formatIpAddress is deprecated, but we only have a ipv4 address here:
+                        out.name("ip").value(Formatter.formatIpAddress(info.getIpAddress()));
+                        out.name("link_speed_mbps").value(info.getLinkSpeed());
+                        out.name("mac_address").value(info.getMacAddress());
+                        out.name("network_id").value(info.getNetworkId());
+                        out.name("rssi").value(info.getRssi());
+                        out.name("ssid").value(info.getSSID().replaceAll("\\\"", ""));
+                        out.name("ssid_hidden").value(info.getHiddenSSID());
+                        out.name("supplicant_state").value(info.getSupplicantState().toString());
+                    }
+                    out.endObject();
                 } else {
-                    out.name("bssid").value(info.getBSSID());
-                    out.name("frequency_mhz").value(info.getFrequency());
-                    //noinspection deprecation - formatIpAddress is deprecated, but we only have a ipv4 address here:
-                    out.name("ip").value(Formatter.formatIpAddress(info.getIpAddress()));
-                    out.name("link_speed_mbps").value(info.getLinkSpeed());
-                    out.name("mac_address").value(info.getMacAddress());
-                    out.name("network_id").value(info.getNetworkId());
-                    out.name("rssi").value(info.getRssi());
-                    out.name("ssid").value(info.getSSID().replaceAll("\\\"", ""));
-                    out.name("ssid_hidden").value(info.getHiddenSSID());
-                    out.name("supplicant_state").value(info.getSupplicantState().toString());
+                    out.name("API_ERROR").value("Device not connected to wifi");
                 }
-                out.endObject();
+                
             }
         });
     }
